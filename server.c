@@ -8,6 +8,34 @@
 #define PORT 8080
 #define BUFFER_SIZE 1024
 
+long file_size = 0;
+
+char *load_file(const char *filename)
+{
+    char *buffer = 0;
+    long length;
+    FILE *file = fopen(filename, "r");
+    if (file == NULL)
+    {
+        // ERROR("Could not open file %s", filename);
+        return NULL;
+    }
+    (void)fseek(file, 0, SEEK_END);
+    length = ftell(file);
+    (void)fseek(file, 0, SEEK_SET);
+    buffer = (char *)malloc(length + 1);
+
+    if (buffer != NULL)
+    {
+        (void)fread(buffer, 1, length, file);
+        (void)fclose(file);
+    }
+
+    file_size = length;
+
+    return buffer;
+}
+
 int main()
 {
     // Server Setup --------------------------------------------------------------------------->
@@ -89,16 +117,40 @@ int main()
             break;
         }
 
-        FILE *fp = fopen(buffer, "r");
+        FILE *fp = fopen(buffer, "rb");
 
         if (fp != NULL)
         {
             // load buffer with file content
-            memset(buffer, 0, BUFFER_SIZE);
-            while (fgets(buffer, BUFFER_SIZE, fp))
+            int sent = 0;
+            char *file_content = load_file(buffer);
+
+            printf("[Server] Loaded %s with size %ld into memory\n", buffer, file_size);
+
+            // the first packet sent tells the client how big the file is
+
+            char str[1024] = {0};
+            sprintf(str, "%ld", file_size);
+            send(conn_fd, str, BUFFER_SIZE, 0);
+
+            printf("[Server] Sending client file size\n");
+
+            // read whether not the client wants to continue
+            printf("[Server] Waiting for client to respond...\n");
+            nbytes = read(conn_fd, buffer, 1);
+            printf("[Server] Client response: %c\n", buffer[0]);
+
+            if (buffer[0] != 'y')
             {
-                buffer[strlen(buffer) - 1] = '\0';
+                printf("[Server] Client quitting...\n");
+                printf("[Server] Quitting...\n");
                 send(conn_fd, buffer, strlen(buffer), 0);
+                break;
+            }
+            else
+            {
+                send(conn_fd, file_content, file_size, 0);
+                printf("[Server] Sent %ld\n", file_size);
             }
         }
         else
@@ -108,6 +160,7 @@ int main()
         }
     }
     printf("[Server] Shutting down.\n");
+
     close(conn_fd);
     close(listen_fd);
     return EXIT_SUCCESS;

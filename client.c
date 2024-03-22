@@ -10,6 +10,7 @@
 
 int main()
 {
+    // Client Setup --------------------------------------------------------------------------->
     int client_fd = 0;
     struct sockaddr_in serv_addr;
     char buffer[BUFFER_SIZE] = {0};
@@ -37,27 +38,81 @@ int main()
         perror("[Client] connect() failed.");
         exit(EXIT_FAILURE);
     }
+
+    // End Client Setup --------------------------------------------------------------------------->
+
     while (1)
     {
         printf("[Client] Enter message: ");
         memset(buffer, 0, BUFFER_SIZE);
         fgets(buffer, BUFFER_SIZE, stdin);
         buffer[strlen(buffer) - 1] = '\0';
+
         if (strcmp(buffer, "quit") == 0)
         {
             printf("[Client] Quitting...\n");
             send(client_fd, buffer, strlen(buffer), 0);
             break;
         }
-        send(client_fd, buffer, strlen(buffer), 0);
-        memset(buffer, 0, BUFFER_SIZE);
-        int nbytes = read(client_fd, buffer, BUFFER_SIZE);
-        if (nbytes <= 0)
+
+        if (strstr(buffer, "download"))
         {
-            perror("[Client] read() failed.");
-            exit(EXIT_FAILURE);
+            // parse input and send server the filename
+            strtok(buffer, " ");
+            char *filename = strtok(NULL, " ");
+            printf("%s\n", filename);
+            send(client_fd, filename, strlen(filename), 0);
+
+            // server will first respond with the file size
+            int nbytes = read(client_fd, buffer, BUFFER_SIZE);
+
+            if (nbytes <= 0)
+            {
+                perror("[Client] read() failed.");
+                exit(EXIT_FAILURE);
+            }
+
+            printf("The file size is | %s | continue? (y/n)\n", buffer);
+            long file_size = strtoul(buffer, NULL, 10);
+
+            printf("[Client] Enter message: ");
+            memset(buffer, 0, BUFFER_SIZE);
+            fgets(buffer, BUFFER_SIZE, stdin);
+
+            if (strstr(buffer, "y"))
+            {
+                // Tell the server to proceed
+                send(client_fd, "y", 1, 0);
+
+                printf("Where do you want to download the file to?\n");
+
+                printf("[Client] Enter message: ");
+                memset(buffer, 0, BUFFER_SIZE);
+                fgets(buffer, BUFFER_SIZE, stdin);
+
+                //
+                void *out_buffer = malloc(file_size);
+                FILE *out_file = fopen(buffer, "wb");
+
+                printf("%s\n", buffer);
+
+                int recv = 0;
+
+                // Handle shortcount
+                while (nbytes = read(client_fd, out_buffer, file_size))
+                {
+                    printf("Writing %d bytes\n", nbytes);
+                    fwrite(out_buffer, 1, nbytes, out_file);
+                    recv += nbytes;
+
+                    if (recv == file_size)
+                        break;
+                }
+
+                printf("Total bytes written: %d\n", recv);
+            }
         }
-        printf("[Client] Received from server: %s\n", buffer);
+
         if (strcmp(buffer, "quit") == 0)
         {
             printf("[Client] Server chatter quitting...\n");
