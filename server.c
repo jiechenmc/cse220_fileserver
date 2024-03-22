@@ -10,7 +10,7 @@
 
 int main()
 {
-    // Server Setup
+    // Server Setup --------------------------------------------------------------------------->
     int listen_fd, conn_fd;
     struct sockaddr_in address;
     int opt = 1;
@@ -62,7 +62,7 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    // End Server Setup
+    // End Server Setup --------------------------------------------------------------------------->
 
     // Receive and process commands
     while (1)
