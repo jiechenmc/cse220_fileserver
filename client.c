@@ -72,6 +72,7 @@ int main()
                 exit(EXIT_FAILURE);
             }
 
+            // Note: I didn't implement any error handling for when the file don't exist
             printf("The file size is | %s | continue? (y/n)\n", buffer);
             long file_size = strtoul(buffer, NULL, 10);
 
@@ -90,18 +91,17 @@ int main()
                 memset(buffer, 0, BUFFER_SIZE);
                 fgets(buffer, BUFFER_SIZE, stdin);
 
-                //
+                // buffer holds the destination file name
+                // create space for
                 void *out_buffer = malloc(file_size);
                 FILE *out_file = fopen(buffer, "wb");
-
-                printf("%s\n", buffer);
 
                 int recv = 0;
 
                 // Handle shortcount
                 while (nbytes = read(client_fd, out_buffer, file_size))
                 {
-                    printf("Writing %d bytes\n", nbytes);
+                    printf("[DEBUG] Writing %d bytes -> %s\n", nbytes, buffer);
                     fwrite(out_buffer, 1, nbytes, out_file);
                     recv += nbytes;
 
@@ -109,7 +109,10 @@ int main()
                         break;
                 }
 
-                printf("Total bytes written: %d\n", recv);
+                printf("[DEBUG] %d bytes written -> %s\n", recv, buffer);
+
+                free(out_buffer);
+                fclose(out_file);
             }
         }
 
