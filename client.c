@@ -43,6 +43,7 @@ int main()
 
     while (1)
     {
+        // prompt the client to input a command
         printf("[Client] Enter message: ");
         memset(buffer, 0, BUFFER_SIZE);
         fgets(buffer, BUFFER_SIZE, stdin);
@@ -57,7 +58,7 @@ int main()
 
         if (strstr(buffer, "download"))
         {
-            // parse input and send server the filename
+            // parse input and send the filename to the server
             strtok(buffer, " ");
             char *filename = strtok(NULL, " ");
             printf("%s\n", filename);
@@ -76,6 +77,7 @@ int main()
             printf("The file size is | %s | continue? (y/n)\n", buffer);
             long file_size = strtoul(buffer, NULL, 10);
 
+            // Prompt for continuing
             printf("[Client] Enter message: ");
             memset(buffer, 0, BUFFER_SIZE);
             fgets(buffer, BUFFER_SIZE, stdin);
@@ -87,12 +89,13 @@ int main()
 
                 printf("Where do you want to download the file to?\n");
 
+                // Prompt for destination file name
                 printf("[Client] Enter message: ");
                 memset(buffer, 0, BUFFER_SIZE);
                 fgets(buffer, BUFFER_SIZE, stdin);
 
                 // buffer holds the destination file name
-                // create space for
+                // create space for the file
                 void *out_buffer = malloc(file_size);
                 FILE *out_file = fopen(buffer, "wb");
 

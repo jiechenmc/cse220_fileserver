@@ -136,6 +136,7 @@ int main()
             printf("[Server] Sending client file size\n");
 
             // read whether not the client wants to continue
+
             printf("[Server] Waiting for client to respond...\n");
             nbytes = read(conn_fd, buffer, 1);
             printf("[Server] Client response: %c\n", buffer[0]);
