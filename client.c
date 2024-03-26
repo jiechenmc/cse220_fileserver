@@ -94,6 +94,11 @@ int main()
                 memset(buffer, 0, BUFFER_SIZE);
                 fgets(buffer, BUFFER_SIZE, stdin);
 
+                // Remove the newline preserved by fgets
+                buffer[strlen(buffer) - 1] = '\0';
+
+                printf("[Client] The destination filename is : %s\n", buffer);
+
                 // buffer holds the destination file name
                 // create space for the file
                 void *out_buffer = malloc(file_size);
